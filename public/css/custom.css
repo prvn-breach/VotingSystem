@@ -1,0 +1,276 @@
+/* 
+
+    1. Header Styles
+    2. Declaration Styles
+    3. OTP Styles
+    4. Voting Styles
+    5. Timer Page Styles
+    6. Loader Styles
+    7. Error Styles
+
+*/
+
+/* --------- 1. Header Styles----------- */
+
+.full-width-header.header-transparent {
+    position: absolute;
+    width: 100%;
+    z-index: 999;
+    border-bottom: 2px solid;
+}
+
+.full-width-header .rs-header {
+    z-index: 99;
+}
+
+.full-width-header.header-transparent .menu-sticky {
+    background: transparent;
+}
+
+.full-width-header .rs-header .menu-area {
+    transition: all 0.3s ease;
+}
+
+.full-width-header .menu-sticky {
+    background: #fff;
+    margin: 0;
+    z-index: 999;
+    width: 100%;
+    top: 0;
+    position: relative;
+}
+
+.full-width-header .rs-header .menu-area .logo-area {
+    position: relative;
+    height: 90px;
+    line-height: 90px;
+}
+
+@media only screen and (max-width: 991px) {
+    .full-width-header .rs-header .menu-area .logo-area {
+        position: absolute;
+        height: unset;
+        line-height: unset;
+        top: 20px;
+        z-index: 1;
+    }
+}
+
+.full-width-header .rs-header .menu-area .logo-area .light {
+    display: inherit;
+}
+
+.full-width-header .rs-header .menu-area .logo-area img {
+    transition: 0.4s;
+    -webkit-transition: 0.4s;
+    max-height: 150px;
+}
+
+@media only screen and (max-width: 991px) {
+    .full-width-header .rs-header .menu-area.sticky .logo-area img, .full-width-header .rs-header .menu-area .logo-area img {
+        max-height: 100px !important;
+    }
+}
+
+/* --------- 2. Declaration Styles----------- */
+
+.declaration-area {
+    position: absolute;
+    left: 15px;
+    right: 15px;
+    top: 110px;
+}
+
+.declaration-area p {
+    margin: 10px;
+}
+
+.declaration-area h2 {
+    margin: 10px;
+}
+
+.declaration-area button {
+    background: #000;
+    line-height: normal;
+    color: #ffffff;
+    transition: all 0.3s ease;
+    border-radius: 3px;
+    border: 0;
+    padding: 0 20px;
+    height: 50px;
+    line-height: 50px;
+    position: relative;
+    font-weight: 400;
+    display: inline-block;
+}
+
+/* .declaration-area button::before {
+    position: absolute;
+    height: 100%;
+    font-size: 18px;
+    -webkit-transition: all 0.3s ease;
+    -moz-transition: all 0.3s ease;
+    transition: all 0.3s ease;
+    right: 25px;
+    opacity: 1;
+    top: 0px;
+    font-size: 15px;
+    content: "\f133";
+    font-family: Flaticon;
+    display: inline-block;
+    font-weight: normal;
+} */
+
+/* ---------- 3. OTP Styles ----------- */
+
+.otp-page {
+    width: 100%;
+    padding-right: 15px;
+    padding-left: 15px;
+    margin-right: auto;
+    margin-left: auto;
+    position: absolute;
+    top: 110px;
+}
+
+.otp-page .otp-content {
+    line-height: 25px;
+    padding-right: 40px !important;
+}
+
+.otp-page .contact-inner-page input {
+    background: #f8f8f8;
+    padding: 10px 18px 14px;
+    color: #767676;
+    width: 100%;
+    border: none;
+    outline: none;
+    border-radius: 3px;
+    border: 2px solid;
+}
+
+.otp-page button {
+    background: #000;
+    line-height: normal;
+    color: #ffffff;
+    transition: all 0.3s ease;
+    border-radius: 3px;
+    border: 0;
+    padding: 0 20px;
+    height: 50px;
+    line-height: 50px;
+    position: relative;
+    font-weight: 400;
+    display: inline-block;
+    margin-top: 20px;
+}
+
+/* --------- 4. Voting Styles ---------- */
+
+.voting-page {
+    position: absolute;
+    left: 0px;
+    right: 0px;
+    top: 92px;
+}
+
+/* ------------- 5. Timer Page Styles ---------------- */
+
+.timer-page {
+    position: absolute;
+    left: 15px;
+    right: 15px;
+    top: 110px;
+}
+
+.timer-page {
+    font-size: 20px;
+    line-height: 35px;
+}
+
+.timer-page .circle {
+    margin-top: 20px;
+    padding-top: 70px;
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    font-size: 20px;
+    color: #fff;
+    text-align: center;
+    border: 5px solid;
+    border-color: #000;
+    margin-left: 23px;
+}
+
+.timer-page .circle span {
+    color: #000;
+}
+
+/* --------- 6. Loader Styles ---------- */
+
+#loading {
+    background-color: #ffffff;
+    height: 100%;
+    width: 100%;
+    position: fixed;
+    z-index: 1;
+    margin-top: 0px;
+    top: 0px;
+    z-index: 999999;
+}
+
+#loading.image-preloader .loader {
+    position: absolute;
+    width: 300px;
+    height: auto;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+#loading.image-preloader .loader img {
+    max-width: 240px;
+    animation-iteration-count: infinite;
+    animation: shake 2s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+    transform: translate3d(0, 0, 0);
+}
+
+@keyframes shake {
+    10%, 90% {
+        transform: translate3d(-1px, 0, 0);
+    }
+    20%, 80% {
+        transform: translate3d(2px, 0, 0);
+    }
+    30%, 50%, 70% {
+        transform: translate3d(-4px, 0, 0);
+    }
+    40%, 60% {
+        transform: translate3d(4px, 0, 0);
+    }
+}
+
+/* --------- 7. Error Styles ---------- */
+
+.error-page {
+    position: absolute;
+    left: 15px;
+    right: 15px;
+    top: 110px;  
+}
+
+.error-page .d-flex {
+    height: 300px;
+}
+
+.error-page .d-flex i {
+   font-size: 80px;
+   color: red;
+}
+
+.error-page .d-flex span {
+    font-weight: bold;
+    margin-top: 10px;
+    font-size: 20px;
+}
