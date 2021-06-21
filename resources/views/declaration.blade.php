@@ -26,11 +26,21 @@
             </p>
         </div>
         <div class="row">
-            <span style="margin: 10px;">
-                <input type="checkbox" class="mr-2">I have read and accepting above said conditions
-            </span>
+            <form action="{{ URL::to('/submit-declaration') }}" class="m-2" method="POST">
+                {{ csrf_field() }} 
+                
+                <input type="checkbox" name="accept" class="mr-2">I have read and accepting above said conditions
+                
+                <div class="g-recaptcha mt-3" data-sitekey="{{ env('CAPTCHA_KEY') }}"></div>
+                @if($errors->has('g-recaptcha-response'))
+                    <span class="invalid-feedback" style="display:block;">
+                        <strong>{{ $errors->first('g-recaptcha-response') }}</strong>
+                    </span>
+                @endif
+
+                <button type="submit" class="mt-3 font-weight-bold">GO<i class="fas fa-arrow-right ml-2"></i></button>
+            </form>
         </div>
-        <button>START<i class="fas fa-arrow-right ml-2"></i></button>
     </div>
 </div>
 @endsection

@@ -15,7 +15,7 @@ return [
 
     'defaults' => [
         'guard' => 'web',
-        'passwords' => 'users',
+        'passwords' => 'asoci_voters',
     ],
 
     /*
@@ -38,7 +38,7 @@ return [
     'guards' => [
         'web' => [
             'driver' => 'session',
-            'provider' => 'users',
+            'provider' => 'asoci_voters',
         ],
 
         'api' => [
@@ -66,11 +66,10 @@ return [
     */
 
     'providers' => [
-        'users' => [
+        'asoci_voters' => [
             'driver' => 'eloquent',
-            'model' => App\Models\User::class,
-        ],
-
+            'model' => App\Models\AssociationVoter::class,
+        ]
         // 'users' => [
         //     'driver' => 'database',
         //     'table' => 'users',
@@ -93,12 +92,12 @@ return [
     */
 
     'passwords' => [
-        'users' => [
-            'provider' => 'users',
+        'asoci_voters' => [
+            'provider' => 'asoci_voters',
             'table' => 'password_resets',
             'expire' => 60,
             'throttle' => 60,
-        ],
+        ]
     ],
 
     /*

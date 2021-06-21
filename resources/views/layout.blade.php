@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="{{ asset('css/animate.min.css') }}">
     <link rel="stylesheet" href="{{ asset('css/fontawesome-all.css') }}">
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 
     <!-- CUSTOM CSS -->
     <link rel="stylesheet" href="{{ asset('css/custom.css') }}">    

@@ -13,35 +13,46 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('entrypage');
+// Route::get('/', function () {
+//     return view('entrypage');
+// });
+
+Route::get('/declaration/{id}', 'IndexController@viewDeclaration');
+Route::post('/submit-declaration', 'IndexController@submitDeclaration');
+Route::get('/verification1', 'IndexController@viewOtpPage1');
+
+Route::group([ 'middleware' => 'auth' ], function () {
 });
 
+// Route::get('/', function () {
+//     return view('entrypage');
+// });
 
-Route::get('/declaration', function () {
-    return view('declaration');
-});
 
-Route::get('/otp', function () {
-    return view('otppage');
-});
+// Route::get('/declaration', function () {
+//     return view('declaration');
+// });
 
-Route::get('/voting', function () {
-    return view('voting');
-});
+// Route::get('/otp', function () {
+//     return view('otppage');
+// });
 
-Route::get('/thankyou', function () {
-    return view('thankyou');
-});
+// Route::get('/voting', function () {
+//     return view('voting');
+// });
 
-Route::get('/error', function () {
-    return view('error');
-});
+// Route::get('/thankyou', function () {
+//     return view('thankyou');
+// });
 
-Route::get('/pollcompleted', function () {
-    return view('pollcompleted');
-});
+// Route::get('/error', function () {
+//     return view('error');
+// });
 
-Route::get('/alreadyvoted', function () {
-    return view('alreadyvoted');
-});
+// Route::get('/pollcompleted', function () {
+//     return view('pollcompleted');
+// });
+
+// Route::get('/alreadyvoted', function () {
+//     return view('alreadyvoted');
+// });
