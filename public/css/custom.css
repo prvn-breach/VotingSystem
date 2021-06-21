@@ -104,6 +104,10 @@
     display: inline-block;
 }
 
+.declaration-area button:disabled {
+    background-color: #767676;
+}
+
 /* .declaration-area button::before {
     position: absolute;
     height: 100%;

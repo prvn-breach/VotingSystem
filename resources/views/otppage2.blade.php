@@ -13,11 +13,16 @@
                             and do not share with anyone.
                         </div>
                     </div>
-                    <form action="http://s.thcaa.co.in/advocates/web/verifyOtp" method="POST"
-                        class="contact-inner-page">
+                    <form action="{{ URL::to('/submitOtp2').'/'.request()->route()->parameters['enc_vtr_card_no'] }}" method="POST" class="contact-inner-page">
+                        {{ csrf_field() }} 
                         <div class="row">
                             <div class="col-md-6">
                                 <input type="text" name="otp" placeholder="Enter OTP" required="">
+                                @if($errors->has('otp'))
+                                    <span class="invalid-feedback" style="display:block;">
+                                        <strong>{{ $errors->first('otp') }}</strong>
+                                    </span>
+                                @endif
                             </div>
                             <div class="col-md-12">
                                 <button type="submit" class="readon upper">Verify<i class="fas fa-arrow-right ml-2"></i></button>
@@ -26,11 +31,12 @@
                     </form>
                     <br>
                     <p class="desc"> Have not received Otp</p>
-                    <a href="http://s.thcaa.co.in/advocates/web/sendOtp/ABCDEF"><button type="button"
+                    <a href="javascript:void(0)"><button type="button"
                             class="readon upper">Resend Otp<i class="fas fa-arrow-right ml-2"></i></button></a>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
 @endsection

@@ -4,7 +4,7 @@
 <div class="declaration-area">
     <div class="container">
         <div class="row">
-            <h2 class="font-weight-bold" style="font-family: 'Playfair Display',serif;">Hello Members</h2>
+            <h2 class="font-weight-bold" style="font-family: 'Playfair Display',serif;">Hello Member</h2>
         </div>
         <div class="row">
             <p>
@@ -26,21 +26,42 @@
             </p>
         </div>
         <div class="row">
-            <form action="{{ URL::to('/submit-declaration') }}" class="m-2" method="POST">
+            <form action="{{ URL::to('/submit-declaration').'/'.request()->route()->parameters['enc_vtr_card_no'] }}" class="m-2" method="POST">
                 {{ csrf_field() }} 
                 
-                <input type="checkbox" name="accept" class="mr-2">I have read and accepting above said conditions
+                <input type="checkbox" name="accept" id="accept_t_c" onchange="change()" class="mr-2">I have read and accepting above said conditions
                 
-                <div class="g-recaptcha mt-3" data-sitekey="{{ env('CAPTCHA_KEY') }}"></div>
+                <div class="g-recaptcha mt-3" data-callback="onReturnCallback" data-sitekey="{{ env('CAPTCHA_KEY') }}"></div>
                 @if($errors->has('g-recaptcha-response'))
                     <span class="invalid-feedback" style="display:block;">
                         <strong>{{ $errors->first('g-recaptcha-response') }}</strong>
                     </span>
                 @endif
 
-                <button type="submit" class="mt-3 font-weight-bold">GO<i class="fas fa-arrow-right ml-2"></i></button>
+                <button type="submit" id="declaration-submit-btn" disabled class="mt-3 font-weight-bold">GO<i class="fas fa-arrow-right ml-2"></i></button>
             </form>
         </div>
     </div>
 </div>
+
+
+<script>
+
+var captcha = null;
+
+var onReturnCallback = (response) => {
+    captcha = response;
+    change();
+};
+
+var change = () => {
+    var accept_t_c = document.querySelector('#accept_t_c').checked;
+    if (accept_t_c && captcha) {
+    $('#declaration-submit-btn').prop('disabled', false);
+    } else {
+        $('#declaration-submit-btn').prop('disabled', true);
+    }
+}
+</script>
+
 @endsection
