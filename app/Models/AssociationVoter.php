@@ -13,7 +13,7 @@ class AssociationVoter extends Authenticatable
     protected $table = 'asoci_voters';
 
     protected $fillable = [
-        'asoci_vtr_name', 'asoci_vtr_mobile', 'asoci_vtr_enrol_no', 'asoci_vtr_card_no', 'asoci_vtr_encr_key'
+        'asoci_vtr_name', 'asoci_vtr_mobile', 'asoci_vtr_enrol_no', 'asoci_vtr_card_no'
     ];
 
     protected $primaryKey = 'asoci_vtr_id';

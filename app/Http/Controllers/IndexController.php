@@ -19,19 +19,38 @@ use App\Models\ElectionVoterSession;
 
 class IndexController extends Controller
 {
+    public function RandomString()
+    {
+        // $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $characters = '0123456789';
+        $randstring = '';
+        for ($i = 0; $i < 10; $i++) {
+            $randstring.= $characters[rand(0, strlen($characters)-1)];
+        }
+        return $randstring;
+    }
 
     public function viewDeclaration($enc_vtr_card_no) {
-
-        $vtr_card_no = openssl_decrypt($enc_vtr_card_no, config('app.cipher'), config('app.key'), 0, ''); 
+        $vtr_card_no = openssl_decrypt($enc_vtr_card_no, config('app.cipher'), config('app.key'), 0, config('app.IV')); 
         if (!$vtr_card_no) {
-            return view('error');
+            return redirect('commonError');
         }
     
         $voter_details = AssociationVoter::where('asoci_vtr_card_no', $vtr_card_no)->first();
         if (!$voter_details) {
-            return view('error');
+            return redirect('commonError');
         }
 
+        // IF Already voted
+        if ( ElectionVoterSession::where('asoci_vtr_id', $voter_details['asoci_vtr_id'])
+            ->where('is_active', 1)
+            ->whereNotNull('session_ended_on')
+            ->count() > 0 ) 
+        {
+            return redirect('already-voted');
+        }
+
+        // All Sessions will be inactive
         ElectionVoterSession::where([ 
             'asoci_vtr_id' => $voter_details['asoci_vtr_id']
         ])->update([
@@ -44,25 +63,35 @@ class IndexController extends Controller
     }
 
     public function submitDeclaration(Request $request, $enc_vtr_card_no) {
-        if (!Session::has('enc_vtr_card_no')) {
-            return redirect('declaration/'.$enc_vtr_card_no);
-        }
-
-        $vtr_card_no = openssl_decrypt($enc_vtr_card_no, config('app.cipher'), config('app.key'), 0, ''); 
+        $vtr_card_no = openssl_decrypt($enc_vtr_card_no, config('app.cipher'), config('app.key'), 0, config('app.IV')); 
         if (!$vtr_card_no) {
-            return view('error');
+            return redirect('commonError');
         }
     
         $voter_details = AssociationVoter::where('asoci_vtr_card_no', $vtr_card_no)->first();
         if (!$voter_details) {
-            return view('error');
+            return redirect('commonError');
+        }
+
+        // IF Already voted
+        if ( ElectionVoterSession::where('asoci_vtr_id', $voter_details['asoci_vtr_id'])
+            ->where('is_active', 1)
+            ->whereNotNull('session_ended_on')
+            ->count() > 0 ) 
+        {
+            return redirect('already-voted');
+        }
+
+        // If Session Expire
+        if (!Session::has('enc_vtr_card_no')) {
+            return redirect('declaration/'.$enc_vtr_card_no);
         }
 
         if(ElectionVoterSession::where([ 
             'asoci_vtr_id' => $voter_details['asoci_vtr_id'],
             'is_active' => 1
         ])->count() > 0) {
-            return view('error');
+            return redirect('commonError');
         }
 
         $validator = Validator::make (
@@ -83,30 +112,36 @@ class IndexController extends Controller
     }
 
     public function viewOtpPage1($enc_vtr_card_no) {
-        $vtr_card_no = openssl_decrypt($enc_vtr_card_no, config('app.cipher'), config('app.key'), 0, ''); 
+        $vtr_card_no = openssl_decrypt($enc_vtr_card_no, config('app.cipher'), config('app.key'), 0, config('app.IV')); 
         if (!$vtr_card_no) {
-            return view('error');
+            return redirect('commonError');
         }
 
         $voter_details = AssociationVoter::where('asoci_vtr_card_no', $vtr_card_no)->first();
         if (!$voter_details) {
-            return view('error');
+            return redirect('commonError');
+        }
+
+        // IF Already voted
+        if ( ElectionVoterSession::where('asoci_vtr_id', $voter_details['asoci_vtr_id'])
+            ->where('is_active', 1)
+            ->whereNotNull('session_ended_on')
+            ->count() > 0) 
+        {
+            return redirect('already-voted');
         }
 
         if (!Session::has('enc_vtr_card_no')) {
-            ElectionVoterSession::where([
-                'asoci_vtr_id' => $voter_details['asoci_vtr_id']
-            ])->update([
-                'is_active' => 0
-            ]);
             return redirect('declaration/'.$enc_vtr_card_no);
         }
 
-        if ( !ElectionVoterSession::where([
+        $elec_vtr_session = ElectionVoterSession::where([
             'asoci_vtr_id' => $voter_details['asoci_vtr_id'],
-            'session_id' => Session::getId()
-        ])->first() ) {
-            $elec_vtr_session = ElectionVoterSession::create([
+            'session_id' => Session::getId(),
+            'is_active' => 1
+        ])->first();
+        if (empty($elec_vtr_session)) {
+            $created_elec_vtr_session = ElectionVoterSession::create([
                 'asoci_vtr_id' => $voter_details['asoci_vtr_id'],
                 'session_id' => Session::getId(),
                 'otp' => '1234',
@@ -119,27 +154,40 @@ class IndexController extends Controller
                 'session_auth_key' => null,
                 'is_active' => 1
             ]);
-            if (empty($elec_vtr_session)) {
-                return view('error');
+            if (empty($created_elec_vtr_session)) {
+                return redirect('commonError');
             }
+            $elec_vtr_session = $created_elec_vtr_session->toArray();
+        } else {
+            $elec_vtr_session = $elec_vtr_session->toArray();
         }
 
-        return view('otppage1');
+        return view('otppage1')->with('otpExpiryDate', $elec_vtr_session['otp_expires_on']);
     }
 
     public function submitOtp1(Request $request, $enc_vtr_card_no) {
-        if (!Session::has('enc_vtr_card_no')) {
-            return redirect('declaration/'.$enc_vtr_card_no);
-        }
-
-        $vtr_card_no = openssl_decrypt($enc_vtr_card_no, config('app.cipher'), config('app.key'), 0, ''); 
+        $vtr_card_no = openssl_decrypt($enc_vtr_card_no, config('app.cipher'), config('app.key'), 0, config('app.IV')); 
         if (!$vtr_card_no) {
-            return view('error');
+            return redirect('commonError');
         }
     
         $voter_details = AssociationVoter::where('asoci_vtr_card_no', $vtr_card_no)->first();
         if (!$voter_details) {
-            return view('error');
+            return redirect('commonError');
+        }
+
+        // IF Already voted
+        if ( ElectionVoterSession::where('asoci_vtr_id', $voter_details['asoci_vtr_id'])
+            ->where('is_active', 1)
+            ->whereNotNull('session_ended_on')
+            ->count() > 0) 
+        {
+            return redirect('already-voted');
+        }
+
+        // If Session Expire
+        if (!Session::has('enc_vtr_card_no')) {
+            return redirect('declaration/'.$enc_vtr_card_no);
         }
 
         $elec_vtr_session = ElectionVoterSession::where([ 
@@ -149,27 +197,118 @@ class IndexController extends Controller
         ])->first();
 
         if(empty($elec_vtr_session)) {
-            return view('error');
+            return redirect('commonError');
         }
 
         $elec_vtr_session = $elec_vtr_session->toArray();
+
+        $diff = strtotime($elec_vtr_session['otp_expires_on']) - strtotime(Carbon::now());
+
+        $otp_validate_msg = 'The Otp is invalid';
+        if ($diff<=0) {
+            $elec_vtr_session['otp'] = null;
+            $otp_validate_msg = 'The Otp was expired. please resend otp';
+        }
 
         $validator = Validator::make (
             array (
                 'otp' => $request['otp']
             ), array (
                 'otp' => 'required|in:'.$elec_vtr_session['otp']
+            ), array (
+                'otp.required' => 'the otp field is required.',
+                'otp.in' => $otp_validate_msg
             )
         );
-
         if ($validator->fails()) {
-            return redirect('verification1/'.$enc_vtr_card_no)->withErrors($validator)->withInput();
+            return redirect('verification1/'.$enc_vtr_card_no)->withErrors($validator)->with('otpExpiryDate', $elec_vtr_session['otp_expires_on']);
         }
 
         return redirect('voting/'.$enc_vtr_card_no);
     }
 
+    public function resendOtp1(Request $request) {
+        $enc_vtr_card_no = $request['enc_vtr_card_no'];
+        $vtr_card_no = openssl_decrypt($enc_vtr_card_no, config('app.cipher'), config('app.key'), 0, config('app.IV')); 
+        if (!$vtr_card_no) {
+            return redirect('commonError');
+        }
+
+        $voter_details = AssociationVoter::where('asoci_vtr_card_no', $vtr_card_no)->first();
+        if (!$voter_details) {
+            return redirect('commonError');
+        }
+
+        // IF Already voted
+        if ( ElectionVoterSession::where('asoci_vtr_id', $voter_details['asoci_vtr_id'])
+            ->where('is_active', 1)
+            ->whereNotNull('session_ended_on')
+            ->count() > 0) 
+        {
+            return redirect('already-voted');
+        }
+
+        if (!Session::has('enc_vtr_card_no')) {
+            return redirect('declaration/'.$enc_vtr_card_no);
+        }
+
+        // IF Voter is InActive
+        $elec_vtr_session = ElectionVoterSession::where([ 
+            'asoci_vtr_id' => $voter_details['asoci_vtr_id'],
+            'session_id' => Session::getId(),
+            'is_active' => 1
+        ])->first();
+
+        if(empty($elec_vtr_session)) {
+            return redirect('commonError');
+        }
+
+        // Update OTP
+        ElectionVoterSession::where([ 
+            'asoci_vtr_id' => $voter_details['asoci_vtr_id'],
+            'session_id' => Session::getId(),
+            'is_active' => 1
+        ])->update([
+            'otp' => '1234',
+            'otp_expires_on' => Carbon::now()->addMinutes(2)
+        ]);
+
+        return redirect('verification1/'.$enc_vtr_card_no)->with('otpExpiryDate', Carbon::now()->addMinutes(2));
+    }
+
     public function viewVoting($enc_vtr_card_no) {
+        $vtr_card_no = openssl_decrypt($enc_vtr_card_no, config('app.cipher'), config('app.key'), 0, config('app.IV')); 
+        if (!$vtr_card_no) {
+            return redirect('commonError');
+        }
+
+        $voter_details = AssociationVoter::where('asoci_vtr_card_no', $vtr_card_no)->first();
+        if (!$voter_details) {
+            return redirect('commonError');
+        }
+
+        // IF Already voted
+        if ( ElectionVoterSession::where('asoci_vtr_id', $voter_details['asoci_vtr_id'])
+            ->where('is_active', 1)
+            ->whereNotNull('session_ended_on')
+            ->count() > 0) 
+        {
+            return redirect('already-voted');
+        }
+
+        // If Session Expire
+        if (!Session::has('enc_vtr_card_no')) {
+            return redirect('declaration/'.$enc_vtr_card_no);
+        }
+
+        if (ElectionVoterSession::where([ 
+            'asoci_vtr_id' => $voter_details['asoci_vtr_id'],
+            'session_id' => Session::getId(),
+            'is_active' => 1
+        ])->count() == 0) {
+            return redirect('commonError');
+        }
+
         $election_posts = ElectionPost::with('participants')->orderBy('priority_seq', 'asc')->get();
         if (empty($election_posts)) {
             $election_posts = [];
@@ -193,23 +332,57 @@ class IndexController extends Controller
     }
 
     public function submitVotes(Request $request, $enc_vtr_card_no) {
+        $vtr_card_no = openssl_decrypt($enc_vtr_card_no, config('app.cipher'), config('app.key'), 0, config('app.IV')); 
+        if (!$vtr_card_no) {
+            return redirect('commonError');
+        }
+
+        $voter_details = AssociationVoter::where('asoci_vtr_card_no', $vtr_card_no)->first();
+        if (!$voter_details) {
+            return redirect('commonError');
+        }
+
+        // IF Already voted
+        if ( ElectionVoterSession::where('asoci_vtr_id', $voter_details['asoci_vtr_id'])
+            ->where('is_active', 1)
+            ->whereNotNull('session_ended_on')
+            ->count() > 0) 
+        {
+            return redirect('already-voted');
+        }
+
+        // IF Session Expire
+        if (!Session::has('enc_vtr_card_no')) {
+            return redirect('declaration/'.$enc_vtr_card_no);
+        }
+
         Session::put('participant_ids', $request['participent_ids']);
         return redirect('verification2/'.$enc_vtr_card_no);
     }
 
     public function viewOtpPage2($enc_vtr_card_no) {
-        return view('otppage2');
-    }
-
-    public function submitOtp2(Request $request, $enc_vtr_card_no) { 
-        $vtr_card_no = openssl_decrypt($enc_vtr_card_no, config('app.cipher'), config('app.key'), 0, ''); 
+        $vtr_card_no = openssl_decrypt($enc_vtr_card_no, config('app.cipher'), config('app.key'), 0, config('app.IV')); 
         if (!$vtr_card_no) {
-            return view('error');
+            return redirect('commonError');
         }
-    
+
         $voter_details = AssociationVoter::where('asoci_vtr_card_no', $vtr_card_no)->first();
         if (!$voter_details) {
-            return view('error');
+            return redirect('commonError');
+        }
+
+        // IF Already voted
+        if ( ElectionVoterSession::where('asoci_vtr_id', $voter_details['asoci_vtr_id'])
+            ->where('is_active', 1)
+            ->whereNotNull('session_ended_on')
+            ->count() > 0) 
+        {
+            return redirect('already-voted');
+        }
+
+        // IF Session Expire
+        if (!Session::has('enc_vtr_card_no')) {
+            return redirect('declaration/'.$enc_vtr_card_no);
         }
 
         $elec_vtr_session = ElectionVoterSession::where([ 
@@ -219,52 +392,172 @@ class IndexController extends Controller
         ])->first();
 
         if(empty($elec_vtr_session)) {
-            return view('error');
+            return redirect('commonError');
         }
 
         $elec_vtr_session = $elec_vtr_session->toArray();
+
+
+        ElectionVoterSession::where([ 
+            'asoci_vtr_id' => $voter_details['asoci_vtr_id']
+        ])->update([
+            'otp' => '2345',
+            'otp_expires_on' => Carbon::now()->addMinutes(2)
+        ]);
+
+        return view('otppage2')->with('otpExpiryDate', Carbon::now()->addMinutes(2));
+    }
+
+    public function submitOtp2(Request $request, $enc_vtr_card_no) { 
+        $vtr_card_no = openssl_decrypt($enc_vtr_card_no, config('app.cipher'), config('app.key'), 0, config('app.IV')); 
+        if (!$vtr_card_no) {
+            return redirect('commonError');
+        }
+    
+        $voter_details = AssociationVoter::where('asoci_vtr_card_no', $vtr_card_no)->first();
+        if (!$voter_details) {
+            return redirect('commonError');
+        }
+
+        // IF Already voted
+        if ( ElectionVoterSession::where('asoci_vtr_id', $voter_details['asoci_vtr_id'])
+            ->where('is_active', 1)
+            ->whereNotNull('session_ended_on')
+            ->count() > 0) 
+        {
+            return redirect('already-voted');
+        }
+
+        // IF SESSION EXPIRE
+        if (!Session::has('enc_vtr_card_no')) {
+            return redirect('declaration/'.$enc_vtr_card_no);
+        }
+
+        // IF Voter is InActive
+        $elec_vtr_session = ElectionVoterSession::where([ 
+            'asoci_vtr_id' => $voter_details['asoci_vtr_id'],
+            'session_id' => Session::getId(),
+            'is_active' => 1
+        ])->first();
+
+        if(empty($elec_vtr_session)) {
+            return redirect('commonError');
+        }
+
+        $elec_vtr_session = $elec_vtr_session->toArray();
+
+        $diff = strtotime($elec_vtr_session['otp_expires_on']) - strtotime(Carbon::now());
+
+        $otp_validate_msg = 'The Otp is invalid';
+        if ($diff<=0) {
+            $elec_vtr_session['otp'] = null;
+            $otp_validate_msg = 'The Otp was expired. please resend otp';
+        }
 
         $validator = Validator::make (
             array (
                 'otp' => $request['otp']
             ), array (
                 'otp' => 'required|in:'.$elec_vtr_session['otp']
+            ), array (
+                'otp.required' => 'the otp field is required.',
+                'otp.in' => $otp_validate_msg
             )
         );
-
         if ($validator->fails()) {
-            return redirect('verification2/'.$enc_vtr_card_no)->withErrors($validator)->withInput();
+            return redirect('verification2/'.$enc_vtr_card_no)->withErrors($validator)->with('otpExpiryDate', $elec_vtr_session['otp_expires_on']);
         }
 
         $participant_ids = Session::get('participant_ids');
         if (!empty($participant_ids)) {
-        foreach ($participant_ids as $id) {
-            $iv = $this->generateRandomString(16);
-            $bytes = openssl_random_pseudo_bytes('16');
-            $secret_key = bin2hex($bytes);
-            $enc_participnt_id = openssl_encrypt($id, config('app.cipher'), $secret_key, 0, $iv); 
-            $enc_vtr_id = openssl_encrypt($voter_details['asoci_vtr_id'], config('app.cipher'), $secret_key, 0, $iv);
-        
-            ElectionVote::create([
-                'elec_participnt_id' => $enc_participnt_id,
-                'asoci_vtr_id' => $enc_vtr_id,
-                'vote_receipt_key' => $secret_key
-            ]);
-        }
+            $enc_vtr_id = openssl_encrypt($voter_details['asoci_vtr_id'], config('app.cipher'), config('app.key'), 0, config('app.IV'));
+            foreach ($participant_ids as $id) {
+                $ids = explode(':', $id);
+                $enc_participnt_id = openssl_encrypt($ids[0], config('app.cipher'), config('app.key'), 0, config('app.IV')); 
+                ElectionVote::create([
+                    'elec_participnt_id' => $enc_participnt_id,
+                    'asoci_vtr_id' => $enc_vtr_id
+                ]);
+            }
         }
 
+        // Update vote_receipt_key and session_ended_on 
+        $receipt_key = openssl_encrypt(json_encode($participant_ids), config('app.cipher'), config('app.key'), 0, config('app.IV')); 
+        ElectionVoterSession::where([ 
+            'asoci_vtr_id' => $voter_details['asoci_vtr_id'],
+            'session_id' => Session::getId(),
+            'is_active' => 1
+        ])->update([
+            'vote_receipt_key' => $receipt_key,
+            'session_ended_on' => Carbon::now()
+        ]);
+
+        // Destroy session
+        Session::flush();
+
+        return redirect('thankyou');
+    }
+
+    public function resendOtp2(Request $request) {
+        $enc_vtr_card_no = $request['enc_vtr_card_no'];
+        $vtr_card_no = openssl_decrypt($enc_vtr_card_no, config('app.cipher'), config('app.key'), 0, config('app.IV')); 
+        if (!$vtr_card_no) {
+            return redirect('commonError');
+        }
+
+        $voter_details = AssociationVoter::where('asoci_vtr_card_no', $vtr_card_no)->first();
+        if (!$voter_details) {
+            return redirect('commonError');
+        }
+
+        // IF Already voted
+        if ( ElectionVoterSession::where('asoci_vtr_id', $voter_details['asoci_vtr_id'])
+            ->where('is_active', 1)
+            ->whereNotNull('session_ended_on')
+            ->count() > 0) 
+        {
+            return redirect('already-voted');
+        }
+
+        if (!Session::has('enc_vtr_card_no')) {
+            return redirect('declaration/'.$enc_vtr_card_no);
+        }
+
+        // IF Voter is InActive
+        $elec_vtr_session = ElectionVoterSession::where([ 
+            'asoci_vtr_id' => $voter_details['asoci_vtr_id'],
+            'session_id' => Session::getId(),
+            'is_active' => 1
+        ])->first();
+
+        if(empty($elec_vtr_session)) {
+            return redirect('commonError');
+        }
+
+        // Update OTP
+        ElectionVoterSession::where([ 
+            'asoci_vtr_id' => $voter_details['asoci_vtr_id'],
+            'session_id' => Session::getId(),
+            'is_active' => 1
+        ])->update([
+            'otp' => '1234',
+            'otp_expires_on' => Carbon::now()->addMinutes(2)
+        ]);
+
+        return redirect('verification2/'.$enc_vtr_card_no)->with('otpExpiryDate', Carbon::now()->addMinutes(2));
+    }
+
+    function thankyou() {
         return view('thankyou');
     }
 
-    function generateRandomString($n) {
-        $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ%#$&*()^,?!';
-        $randomString = '';
-        
-        for ($i = 0; $i < $n; $i++) {
-            $index = rand(0, strlen($characters) - 1);
-            $randomString .= $characters[$index];
-        }
-        
-        return $randomString;
+    function commonError() {
+        Session::flush();
+        return view('error');
+    }
+
+    function alreadyVoted() {
+        Session::flush();
+        return view('alreadyvoted');
     }
 }

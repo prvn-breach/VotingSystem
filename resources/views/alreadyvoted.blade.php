@@ -8,7 +8,7 @@
                 <div class="wizard-forms">
                     <div class="quiz-option-selector">
                         <div class="text-center mt-5 pt-5">
-                            <h3>Your vote has been already submitted </h3>
+                            <h3>We have received your vote already. Thank you</h3>
                         </div>
                     </div>
                 </div>

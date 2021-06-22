@@ -2,29 +2,6 @@
 
 @section('content')
 <div class="voting-page">
-    <div class="quiz-top-area text-center">
-        <h1>Remaining Polling Time</h1>
-        <div class="quiz-countdown text-center ul-li">
-            <ul>
-                <li class="days">
-                    <span class="count-down-number"></span>
-                    <span class="count-unit">Days</span>
-                </li>
-                <li class="hours">
-                    <span class="count-down-number"></span>
-                    <span class="count-unit">Hours</span>
-                </li>
-                <li class="minutes">
-                    <span class="count-down-number"></span>
-                    <span class="count-unit">Min</span>
-                </li>
-                <li class="seconds">
-                    <span class="count-down-number"></span>
-                    <span class="count-unit">Sec</span>
-                </li>
-            </ul>
-        </div>
-    </div>
     <div class="wrapper position-relative">
         <div class="wizard-content-1 clearfix">
             <div class="steps d-inline-block position-absolute clearfix">
@@ -35,7 +12,7 @@
                 </ul>
             </div>
             <div class="step-inner-content clearfix position-relative">
-                <form class="multisteps-form__form" action="{{ URL::to('/submitVotes').'/'.request()->route()->parameters['enc_vtr_card_no'] }}" id="wizard" method="POST">
+                <form class="multisteps-form__form" onsubmit="return confirm('Once you submit, you can not change your votes. Do you want to submit?');" action="{{ URL::to('/submitVotes').'/'.request()->route()->parameters['enc_vtr_card_no'] }}" id="wizard" method="POST">
                     {{ csrf_field() }} 
                     <div class="form-area position-relative">
                         @foreach($election_posts as $index => $post)
@@ -57,7 +34,7 @@
                                                 <input 
                                                     type="checkbox" 
                                                     name="participent_ids[]" 
-                                                    value="{{ $participant['elec_participnt_id'] }}" 
+                                                    value="{{ $participant['elec_post_id'] }}:{{ $participant['elec_participnt_id'] }}" 
                                                     class="exp-option-box checkbox{{ $post['elec_post_id'] }}"
                                                 >
                                                 <img class="exp-number text-uppercase" src="https://media.wired.com/photos/5dd3081844aad10009406a30/1:1/w_2400,c_limit/Biz-Sundar-h_20.93146994.jpg" alt="">
@@ -76,6 +53,7 @@
                                         <li class="@if($index == 0) d-none @endif"><span class="js-btn-prev" title="PREV">Previous Question</span></li>
                                         @if($index<=count($election_posts)-2)
                                         <li><span class="js-btn-next" title="NEXT">Next Question</span></li>
+                                        <li><button class="js-btn-submit" type="submit"><span>End Poll</span></button></li>
                                         @else
                                         <li><button class="js-btn-submit" type="submit"><span>SUBMIT</span></button></li>
                                         @endif

@@ -8,7 +8,7 @@
                 <div class="wizard-forms">
                     <div class="quiz-option-selector">
                         <div class="thankyou-msg text-center mt-5 pt-5">
-                            <h2>Polling Completed</h2>
+                            <h2>The eVoting has been completed by 4.30pm. Thank you</h2>
                         </div>
                     </div>
                 </div>

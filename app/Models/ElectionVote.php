@@ -11,6 +11,6 @@ class ElectionVote extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'elec_participnt_id', 'asoci_vtr_id', 'vote_receipt_key'
+        'elec_participnt_id', 'asoci_vtr_id'
     ];
 }
