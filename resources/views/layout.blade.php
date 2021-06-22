@@ -5,6 +5,7 @@
     <meta charset="utf-8">
     <title>Election</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('css/owl.carousel.css') }}">
     <link rel="stylesheet" href="{{ asset('css/animate.min.css') }}">
@@ -37,4 +38,20 @@
     <script src="{{ asset('js/jquery.validate.min.js') }}"></script>
     <script src="{{ asset('js/main.js') }}"></script>
 </body>
+
+<script>
+$(document).ready(function() {
+    $(document).on("contextmenu",function (e) {
+        e.preventDefault();
+    }); 
+}); 
+
+$(document).keydown(function (event) {
+    if (event.keyCode == 123) { // Prevent F12
+        return false;
+    } else if (event.ctrlKey && event.shiftKey && event.keyCode == 73) { // Prevent Ctrl+Shift+I        
+        return false;
+    }
+});
+</script>
 </html>

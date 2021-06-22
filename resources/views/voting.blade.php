@@ -50,9 +50,9 @@
                                 </div>
                                 <div class="actions clearfix">
                                     <ul>
-                                        <li class="@if($index == 0) d-none @endif"><span class="js-btn-prev" title="PREV">Previous Question</span></li>
+                                        <li class="@if($index == 0) d-none @endif"><span class="js-btn-prev" title="PREV">Previous</span></li>
                                         @if($index<=count($election_posts)-2)
-                                        <li><span class="js-btn-next" title="NEXT">Next Question</span></li>
+                                        <li><span class="js-btn-next" title="NEXT">Next</span></li>
                                         <li><button class="js-btn-submit" type="submit"><span>End Poll</span></button></li>
                                         @else
                                         <li><button class="js-btn-submit" type="submit"><span>SUBMIT</span></button></li>

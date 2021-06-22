@@ -19,6 +19,7 @@ use App\Models\ElectionVoterSession;
 
 class IndexController extends Controller
 {
+
     public function RandomString()
     {
         // $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -30,8 +31,18 @@ class IndexController extends Controller
         return $randstring;
     }
 
+    public function entryPage() {
+        dd(Auth::attempt([
+            'email' => 'admin@admin.com',
+            'password' => '8977425125'
+        ]));
+        // Auth::login(AssociationVoter::first());
+        dd(Auth::user());
+        return view('entrypage');
+    }
+
     public function viewDeclaration($enc_vtr_card_no) {
-        $vtr_card_no = openssl_decrypt($enc_vtr_card_no, config('app.cipher'), config('app.key'), 0, config('app.IV')); 
+        $vtr_card_no = openssl_decrypt(hex2bin($enc_vtr_card_no), config('app.cipher'), config('app.key'), OPENSSL_RAW_DATA, config('app.IV')); 
         if (!$vtr_card_no) {
             return redirect('commonError');
         }
@@ -63,7 +74,7 @@ class IndexController extends Controller
     }
 
     public function submitDeclaration(Request $request, $enc_vtr_card_no) {
-        $vtr_card_no = openssl_decrypt($enc_vtr_card_no, config('app.cipher'), config('app.key'), 0, config('app.IV')); 
+        $vtr_card_no = openssl_decrypt(hex2bin($enc_vtr_card_no), config('app.cipher'), config('app.key'), OPENSSL_RAW_DATA, config('app.IV')); 
         if (!$vtr_card_no) {
             return redirect('commonError');
         }
@@ -112,7 +123,7 @@ class IndexController extends Controller
     }
 
     public function viewOtpPage1($enc_vtr_card_no) {
-        $vtr_card_no = openssl_decrypt($enc_vtr_card_no, config('app.cipher'), config('app.key'), 0, config('app.IV')); 
+        $vtr_card_no = openssl_decrypt(hex2bin($enc_vtr_card_no), config('app.cipher'), config('app.key'), OPENSSL_RAW_DATA, config('app.IV')); 
         if (!$vtr_card_no) {
             return redirect('commonError');
         }
@@ -146,7 +157,8 @@ class IndexController extends Controller
                 'session_id' => Session::getId(),
                 'otp' => '1234',
                 'otp_expires_on' => Carbon::now()->addMinutes(2),
-                'ip_address' => null,
+                'ip_address' => $_SERVER['REMOTE_ADDR'],
+                'user_agent_data' => $_SERVER['HTTP_USER_AGENT'],
                 'latitude' => null,
                 'longitude' => null,
                 'session_started_on' => Carbon::now(),
@@ -166,7 +178,16 @@ class IndexController extends Controller
     }
 
     public function submitOtp1(Request $request, $enc_vtr_card_no) {
-        $vtr_card_no = openssl_decrypt($enc_vtr_card_no, config('app.cipher'), config('app.key'), 0, config('app.IV')); 
+
+        if (
+            $request['username']!=null || 
+            $request['password']!=null || 
+            $request['sec_key']!=null
+        ) {
+            return redirect('commonError');
+        }
+
+        $vtr_card_no = openssl_decrypt(hex2bin($enc_vtr_card_no), config('app.cipher'), config('app.key'), OPENSSL_RAW_DATA, config('app.IV')); 
         if (!$vtr_card_no) {
             return redirect('commonError');
         }
@@ -229,7 +250,7 @@ class IndexController extends Controller
 
     public function resendOtp1(Request $request) {
         $enc_vtr_card_no = $request['enc_vtr_card_no'];
-        $vtr_card_no = openssl_decrypt($enc_vtr_card_no, config('app.cipher'), config('app.key'), 0, config('app.IV')); 
+        $vtr_card_no = openssl_decrypt(hex2bin($enc_vtr_card_no), config('app.cipher'), config('app.key'), OPENSSL_RAW_DATA, config('app.IV')); 
         if (!$vtr_card_no) {
             return redirect('commonError');
         }
@@ -277,7 +298,7 @@ class IndexController extends Controller
     }
 
     public function viewVoting($enc_vtr_card_no) {
-        $vtr_card_no = openssl_decrypt($enc_vtr_card_no, config('app.cipher'), config('app.key'), 0, config('app.IV')); 
+        $vtr_card_no = openssl_decrypt(hex2bin($enc_vtr_card_no), config('app.cipher'), config('app.key'), OPENSSL_RAW_DATA, config('app.IV')); 
         if (!$vtr_card_no) {
             return redirect('commonError');
         }
@@ -332,7 +353,7 @@ class IndexController extends Controller
     }
 
     public function submitVotes(Request $request, $enc_vtr_card_no) {
-        $vtr_card_no = openssl_decrypt($enc_vtr_card_no, config('app.cipher'), config('app.key'), 0, config('app.IV')); 
+        $vtr_card_no = openssl_decrypt(hex2bin($enc_vtr_card_no), config('app.cipher'), config('app.key'), OPENSSL_RAW_DATA, config('app.IV')); 
         if (!$vtr_card_no) {
             return redirect('commonError');
         }
@@ -361,7 +382,7 @@ class IndexController extends Controller
     }
 
     public function viewOtpPage2($enc_vtr_card_no) {
-        $vtr_card_no = openssl_decrypt($enc_vtr_card_no, config('app.cipher'), config('app.key'), 0, config('app.IV')); 
+        $vtr_card_no = openssl_decrypt(hex2bin($enc_vtr_card_no), config('app.cipher'), config('app.key'), OPENSSL_RAW_DATA, config('app.IV')); 
         if (!$vtr_card_no) {
             return redirect('commonError');
         }
@@ -409,7 +430,16 @@ class IndexController extends Controller
     }
 
     public function submitOtp2(Request $request, $enc_vtr_card_no) { 
-        $vtr_card_no = openssl_decrypt($enc_vtr_card_no, config('app.cipher'), config('app.key'), 0, config('app.IV')); 
+
+        if (
+            $request['username']!=null || 
+            $request['password']!=null || 
+            $request['sec_key']!=null
+        ) {
+            return redirect('commonError');
+        }
+
+        $vtr_card_no = openssl_decrypt(hex2bin($enc_vtr_card_no), config('app.cipher'), config('app.key'), OPENSSL_RAW_DATA, config('app.IV')); 
         if (!$vtr_card_no) {
             return redirect('commonError');
         }
@@ -470,10 +500,10 @@ class IndexController extends Controller
 
         $participant_ids = Session::get('participant_ids');
         if (!empty($participant_ids)) {
-            $enc_vtr_id = openssl_encrypt($voter_details['asoci_vtr_id'], config('app.cipher'), config('app.key'), 0, config('app.IV'));
+            $enc_vtr_id = bin2hex(openssl_encrypt($voter_details['asoci_vtr_id'], config('app.cipher'), config('app.key'), OPENSSL_RAW_DATA, config('app.IV')));
             foreach ($participant_ids as $id) {
                 $ids = explode(':', $id);
-                $enc_participnt_id = openssl_encrypt($ids[0], config('app.cipher'), config('app.key'), 0, config('app.IV')); 
+                $enc_participnt_id = bin2hex(openssl_encrypt($ids[1], config('app.cipher'), config('app.key'), OPENSSL_RAW_DATA, config('app.IV'))); 
                 ElectionVote::create([
                     'elec_participnt_id' => $enc_participnt_id,
                     'asoci_vtr_id' => $enc_vtr_id
@@ -482,7 +512,7 @@ class IndexController extends Controller
         }
 
         // Update vote_receipt_key and session_ended_on 
-        $receipt_key = openssl_encrypt(json_encode($participant_ids), config('app.cipher'), config('app.key'), 0, config('app.IV')); 
+        $receipt_key = bin2hex(openssl_encrypt(json_encode($participant_ids), config('app.cipher'), config('app.key'), OPENSSL_RAW_DATA, config('app.IV'))); 
         ElectionVoterSession::where([ 
             'asoci_vtr_id' => $voter_details['asoci_vtr_id'],
             'session_id' => Session::getId(),
@@ -500,7 +530,7 @@ class IndexController extends Controller
 
     public function resendOtp2(Request $request) {
         $enc_vtr_card_no = $request['enc_vtr_card_no'];
-        $vtr_card_no = openssl_decrypt($enc_vtr_card_no, config('app.cipher'), config('app.key'), 0, config('app.IV')); 
+        $vtr_card_no = openssl_decrypt(hex2bin($enc_vtr_card_no), config('app.cipher'), config('app.key'), OPENSSL_RAW_DATA, config('app.IV')); 
         if (!$vtr_card_no) {
             return redirect('commonError');
         }

@@ -12,9 +12,11 @@ use Illuminate\Support\Facades\Route;
 | contains the "web" middleware group. Now create something great!
 |
 */
-
 Route::get('/', 'IndexController@entryPage');
+
 Route::get('/declaration/{enc_vtr_card_no}', 'IndexController@viewDeclaration');
+
+
 Route::post('/submit-declaration/{enc_vtr_card_no}', 'IndexController@submitDeclaration');
 Route::get('/verification1/{enc_vtr_card_no}', 'IndexController@viewOtpPage1');
 Route::post('/submitOtp1/{enc_vtr_card_no}', 'IndexController@submitOtp1');
@@ -29,9 +31,9 @@ Route::get('/commonError', 'IndexController@commonError');
 Route::get('/already-voted', 'IndexController@alreadyVoted');
 
 Route::group([ 'middleware' => 'auth' ], function () {
-    // Route::get('/', function () {
-    //     return view('entrypage');
-    // });
+    Route::get('/test', function () {
+        return view('error');
+    });
 });
 
 Auth::routes();

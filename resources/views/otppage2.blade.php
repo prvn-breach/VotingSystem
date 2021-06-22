@@ -17,6 +17,9 @@
                         {{ csrf_field() }} 
                         <div class="row">
                             <div class="col-md-6">
+                                <input type="hidden" name="username" id="username">
+                                <input type="hidden" name="password" id="password">
+                                <input type="hidden" name="sec_key" id="sec_key">
                                 <input type="text" name="otp" placeholder="Enter OTP" required="">
                                 <div class="d-flex">
                                     @if($errors->has('otp'))
