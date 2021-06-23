@@ -36,14 +36,14 @@
                         </div>
                     </form>
                     <br>
-                    <div class="@if(!$errors->has('otp')) d-none @endif resend-btn">
+                    <!-- <div class="@if(!$errors->has('otp')) d-none @endif resend-btn"> -->
                         <p class="desc"> Have not received Otp</p>
                         <form action="{{ URL::to('/resendOtp1') }}" method="post">
                             {{ csrf_field() }} 
                             <input type="hidden" name="enc_vtr_card_no" value="{{ request()->route()->parameters['enc_vtr_card_no'] }}">
                             <button type="submit" class="readon upper">Resend Otp<i class="fas fa-arrow-right ml-2"></i></button>
                         </form>
-                    </div>
+                    <!-- </div> -->
                 </div>
             </div>
         </div>
@@ -58,9 +58,9 @@ interval = setInterval(() => {
     var currentDate = new Date().getTime();
     var distance = deadlineDate - currentDate;
     var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-    if (minutes < 1) {
-        $('.resend-btn').removeClass('d-none');
-    }
+    // if (minutes < 1) {
+    //     $('.resend-btn').removeClass('d-none');
+    // }
     if (distance > 1) { 
         var seconds = Math.floor((distance % (1000 * 60)) / 1000);
         if (minutes < 10) {
