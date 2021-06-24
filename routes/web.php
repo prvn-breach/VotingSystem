@@ -20,13 +20,13 @@ Route::get('/downloadpdf', 'IndexController@downloadPdf');
 Route::group([ 'middleware' => 'session' ], function () {
     // Route::get('/declaration/{enc_vtr_card_no}', 'IndexController@viewDeclaration');
     // Route::post('/submit-declaration/{enc_vtr_card_no}', 'IndexController@submitDeclaration');
-    Route::get('/verification1/{enc_vtr_card_no}', 'IndexController@viewOtpPage1');
-    Route::post('/submitOtp1/{enc_vtr_card_no}', 'IndexController@submitOtp1');
+    Route::get('/verification1/{candidate_voter_card}', 'IndexController@viewOtpPage1');
+    Route::post('/submitOtp1/{candidate_voter_card}', 'IndexController@submitOtp1');
     Route::post('/resendOtp1', 'IndexController@resendOtp1');
-    Route::get('/voting/{enc_vtr_card_no}', 'IndexController@viewVoting');
-    Route::post('/submitVotes/{enc_vtr_card_no}', 'IndexController@submitVotes');
-    Route::get('/verification2/{enc_vtr_card_no}', 'IndexController@viewOtpPage2');
-    Route::post('/submitOtp2/{enc_vtr_card_no}', 'IndexController@submitOtp2');
+    Route::get('/voting/{candidate_voter_card}', 'IndexController@viewVoting');
+    Route::post('/submitVotes/{candidate_voter_card}', 'IndexController@submitVotes');
+    Route::get('/verification2/{candidate_voter_card}', 'IndexController@viewOtpPage2');
+    Route::post('/submitOtp2/{candidate_voter_card}', 'IndexController@submitOtp2');
     Route::post('/resendOtp2', 'IndexController@resendOtp2');
 });
 

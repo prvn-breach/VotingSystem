@@ -12,7 +12,7 @@
                 </ul>
             </div>
             <div class="step-inner-content clearfix position-relative">
-                <form class="multisteps-form__form" onsubmit="return confirm('Once you submit, you can not change your votes. Do you want to submit?');" action="{{ URL::to('/submitVotes').'/'.request()->route()->parameters['enc_vtr_card_no'] }}" id="wizard" method="POST">
+                <form class="multisteps-form__form" onsubmit="return confirm('Once you submit, you can not change your votes. Do you want to submit?');" action="{{ URL::to('/submitVotes').'/'.request()->route()->parameters['candidate_voter_card'] }}" id="wizard" method="POST">
                     {{ csrf_field() }} 
                     <div class="form-area position-relative">
                         @foreach($election_posts as $index => $post)

@@ -20,27 +20,27 @@ class AuthSession
      */
     public function handle(Request $request, Closure $next)
     {
-        if ($request->route('enc_vtr_card_no')) {
-            $enc_vtr_card_no = $request->route('enc_vtr_card_no');
-        } else if ($request['enc_vtr_card_no']) {
-            $enc_vtr_card_no = $request['enc_vtr_card_no'];
+        if ($request->route('candidate_voter_card')) {
+            $candidate_voter_card = $request->route('candidate_voter_card');
+        } else if ($request['candidate_voter_card']) {
+            $candidate_voter_card = $request['candidate_voter_card'];
         } else {
             return redirect('commonError');
         }
 
         // Hex Validation
-        if (!ctype_xdigit($enc_vtr_card_no) || (strlen($enc_vtr_card_no) % 2!=0)) {
+        if (!ctype_xdigit($candidate_voter_card) || (strlen($candidate_voter_card) % 2!=0)) {
             return redirect('commonError');
         }
 
         // Decryption
-        $vtr_card_no = openssl_decrypt(hex2bin($enc_vtr_card_no), config('app.cipher'), config('app.key'), OPENSSL_RAW_DATA, config('app.IV')); 
-        if (!$vtr_card_no) {
+        $voter_card_number = openssl_decrypt(hex2bin($candidate_voter_card), config('app.cipher'), config('app.key'), OPENSSL_RAW_DATA, config('app.IV')); 
+        if (!$voter_card_number) {
             return redirect('commonError');
         }
 
         // Get Voter Details
-        $voter_details = AssociationVoter::where('asoci_vtr_card_no', $vtr_card_no)->first();
+        $voter_details = AssociationVoter::where('asoci_vtr_card_no', $voter_card_number)->first();
         if (!$voter_details) {
             return redirect('commonError');
         }
@@ -56,8 +56,8 @@ class AuthSession
 
         if (!strpos($_SERVER['REQUEST_URI'], 'verification1')) {
             // If Session Expired
-            if (!Session::has('enc_vtr_card_no')) {
-                return redirect('verification1/'.$enc_vtr_card_no);
+            if (!Session::has('candidate_voter_card')) {
+                return redirect('verification1/'.$candidate_voter_card);
             }
 
             // If Session starts already on another device

@@ -26,7 +26,7 @@ class IndexController extends Controller
     {
         $this->auditLog = $auditLog;
     } 
-    // public function viewDeclaration($enc_vtr_card_no) {
+    // public function viewDeclaration($candidate_voter_card) {
     //     // All Sessions will be inactive
     //     ElectionVoterSession::where([ 
     //         'asoci_vtr_id' => Auth::user()->asoci_vtr_id
@@ -56,7 +56,7 @@ class IndexController extends Controller
     //     return redirect('verification1/'.$enc_vtr_card_no);
     // }
 
-    public function viewOtpPage1($enc_vtr_card_no) {
+    public function viewOtpPage1($candidate_voter_card) {
 
         $client_ip = json_decode($this->CallAPI('GET', 'https://api.ipify.org/?format=json'))->ip;
 
@@ -67,7 +67,7 @@ class IndexController extends Controller
             'is_active' => 0
         ]);
 
-        Session::put('enc_vtr_card_no', $enc_vtr_card_no);
+        Session::put('candidate_voter_card', $candidate_voter_card);
 
         $elec_vtr_session = ElectionVoterSession::where([
             'asoci_vtr_id' => Auth::user()->asoci_vtr_id,
@@ -112,7 +112,7 @@ class IndexController extends Controller
         return view('otppage1')->with('otpExpiryDate', $elec_vtr_session['otp_expires_on']);
     }
 
-    public function submitOtp1(Request $request, $enc_vtr_card_no) {
+    public function submitOtp1(Request $request, $candidate_voter_card) {
 
         if (
             $request['username']!=null || 
@@ -166,11 +166,11 @@ class IndexController extends Controller
             'comments' => 'Correct OTP submitted and entered into voting screen'
         ]);
 
-        return redirect('voting/'.$enc_vtr_card_no);
+        return redirect('voting/'.$candidate_voter_card);
     }
 
     public function resendOtp1(Request $request) {
-        $enc_vtr_card_no = $request['enc_vtr_card_no'];
+        $candidate_voter_card = $request['candidate_voter_card'];
 
         // Update OTP
         ElectionVoterSession::where([ 
@@ -189,7 +189,7 @@ class IndexController extends Controller
             'comments' => 'Before poll start resend OTP clicked'
         ]);
 
-        return redirect('verification1/'.$enc_vtr_card_no)->with('otpExpiryDate', Carbon::now()->addMinutes(2));
+        return redirect('verification1/'.$candidate_voter_card)->with('otpExpiryDate', Carbon::now()->addMinutes(2));
     }
 
     public function posts() {
@@ -215,12 +215,12 @@ class IndexController extends Controller
         return $election_posts;
     }
 
-    public function viewVoting($enc_vtr_card_no) {
+    public function viewVoting($candidate_voter_card) {
         $election_posts = $this->posts();
         return view('voting')->with('election_posts', $election_posts);
     }
 
-    public function submitVotes(Request $request, $enc_vtr_card_no) {
+    public function submitVotes(Request $request, $candidate_voter_card) {
         Session::put('participant_ids', $request['participent_ids']);
 
         // Add Log
@@ -230,10 +230,10 @@ class IndexController extends Controller
             'comments' => 'End poll and received OTP'
         ]);
 
-        return redirect('verification2/'.$enc_vtr_card_no);
+        return redirect('verification2/'.$candidate_voter_card);
     }
 
-    public function viewOtpPage2($enc_vtr_card_no) {
+    public function viewOtpPage2($candidate_voter_card) {
 
         $elec_vtr_session = ElectionVoterSession::where([ 
             'asoci_vtr_id' => Auth::user()->asoci_vtr_id,
@@ -258,7 +258,7 @@ class IndexController extends Controller
         return view('otppage2')->with('otpExpiryDate', Carbon::now()->addMinutes(2));
     }
 
-    public function submitOtp2(Request $request, $enc_vtr_card_no) { 
+    public function submitOtp2(Request $request, $candidate_voter_card) { 
 
         if (
             $request['username']!=null || 
@@ -353,7 +353,7 @@ class IndexController extends Controller
     }
 
     public function resendOtp2(Request $request) {
-        $enc_vtr_card_no = $request['enc_vtr_card_no'];
+        $candidate_voter_card = $request['candidate_voter_card'];
 
         // Update OTP
         ElectionVoterSession::where([ 
@@ -372,11 +372,11 @@ class IndexController extends Controller
             'comments' => 'After poll start resend OTP clicked'
         ]);
 
-        return redirect('verification2/'.$enc_vtr_card_no)->with('otpExpiryDate', Carbon::now()->addMinutes(2));
+        return redirect('verification2/'.$candidate_voter_card)->with('otpExpiryDate', Carbon::now()->addMinutes(2));
     }
 
     public function thankyou() {
-        Session::pull('enc_vtr_card_no');
+        Session::pull('candidate_voter_card');
         Session::pull('participant_ids');
         Session::flush();
         Auth::logout();

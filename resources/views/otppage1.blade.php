@@ -13,7 +13,7 @@
                             and do not share with anyone.
                         </div>
                     </div>
-                    <form action="{{ URL::to('/submitOtp1').'/'.request()->route()->parameters['enc_vtr_card_no'] }}" method="POST" class="contact-inner-page">
+                    <form action="{{ URL::to('/submitOtp1').'/'.request()->route()->parameters['candidate_voter_card'] }}" method="POST" class="contact-inner-page">
                         {{ csrf_field() }} 
                         <div class="row">
                             <div class="col-md-6">
@@ -40,7 +40,7 @@
                         <p class="desc"> Have not received Otp</p>
                         <form action="{{ URL::to('/resendOtp1') }}" method="post">
                             {{ csrf_field() }} 
-                            <input type="hidden" name="enc_vtr_card_no" value="{{ request()->route()->parameters['enc_vtr_card_no'] }}">
+                            <input type="hidden" name="candidate_voter_card" value="{{ request()->route()->parameters['candidate_voter_card'] }}">
                             <button type="submit" class="readon upper">Resend Otp<i class="fas fa-arrow-right ml-2"></i></button>
                         </form>
                     <!-- </div> -->
