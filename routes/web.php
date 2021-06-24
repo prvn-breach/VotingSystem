@@ -13,10 +13,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-
-Route::get('/pdf', function(){
-    return view('ebolletpaper');
-});
+Route::get('/votingnew', 'IndexController@votingNewDesign');
 
 Route::get('/downloadpdf', 'IndexController@downloadPdf');
 

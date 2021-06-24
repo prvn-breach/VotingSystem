@@ -7,16 +7,16 @@
             <div class="steps d-inline-block position-absolute clearfix">
                 <ul class="tablist multisteps-form__progress">
                     @foreach($election_posts as $index => $post)
-                    <li class="multisteps-form__progress-btn @if($index==0) js-active current @endif"></li>
+                    <li class="multisteps-form__progress-btn js-active current"></li>
                     @endforeach
                 </ul>
             </div>
             <div class="step-inner-content clearfix position-relative">
-                <form class="multisteps-form__form" onsubmit="return confirm('Once you submit, you can not change your votes. Do you want to submit?');" action="{{ URL::to('/submitVotes').'/'.request()->route()->parameters['enc_vtr_card_no'] }}" id="wizard" method="POST">
+                <form class="multisteps-form__form" onsubmit="return confirm('Once you submit, you can not change your votes. Do you want to submit?');" action="{{ URL::to('/thankyou') }}" id="wizard" method="GET">
                     {{ csrf_field() }} 
                     <div class="form-area position-relative">
                         @foreach($election_posts as $index => $post)
-                        <div id="step{{ $post['elec_post_id'] }}" class="multisteps-form__panel @if($index==0) js-active @endif" data-animation="fadeIn">
+                        <div id="step{{ $post['elec_post_id'] }}" class="multisteps-form__panel js-active" data-animation="fadeIn">
                             <div class="wizard-forms clearfix position-relative">
                                 <div class="quiz-title text-center">
                                     <h2>E-Ballot Paper</h2>
@@ -27,7 +27,7 @@
                                     <p>Please select any {{ $post['no_of_partcipnt_to_choose'] }} persons you want to vote as {{ $post['elec_post_name'] }}</p>
                                     @endif
                                 </div>
-                                <div class="quiz-option-selector clearfix">
+                                <div class="quiz-option-selector pb-0 clearfix">
                                     <ul class="post{{ $post['elec_post_id'] }}">
                                         @foreach($post['participants'] as $participant)
                                         <li>
@@ -46,10 +46,7 @@
                                         @endforeach
                                     </ul>
                                 </div>
-                                <div class="bottom-vector">
-                                    <img src="assets/img/bq1.png" alt="">
-                                </div>
-                                <div class="actions clearfix">
+                                <!-- <div class="actions clearfix">
                                     <ul>
                                         <li class="@if($index == 0) d-none @endif"><span class="js-btn-prev" title="PREV">Previous</span></li>
                                         @if($index<=count($election_posts)-2)
@@ -59,10 +56,18 @@
                                         <li><button class="js-btn-submit" type="submit"><span>SUBMIT</span></button></li>
                                         @endif
                                     </ul>
-                                </div>
+                                </div> -->
                             </div>
                         </div>
+                        @if($index!=count($election_posts)-1)
+                        <hr>
+                        @endif
                         @endforeach
+                    </div>
+                    <div class="actions clearfix">
+                        <ul>
+                            <li><button class="js-btn-submit" type="submit"><span>End Poll</span></button></li>
+                        </ul>
                     </div>
                 </form>
             </div>

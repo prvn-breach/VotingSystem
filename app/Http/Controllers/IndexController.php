@@ -13,6 +13,7 @@ use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
+use App\Models\AuditLog;
 use App\Models\ElectionVote;
 use App\Models\ElectionPost;
 use App\Models\AssociationVoter;
@@ -21,6 +22,10 @@ use App\Models\ElectionVoterSession;
 
 class IndexController extends Controller
 {
+    public function __construct(AuditLog $auditLog)
+    {
+        $this->auditLog = $auditLog;
+    } 
     // public function viewDeclaration($enc_vtr_card_no) {
     //     // All Sessions will be inactive
     //     ElectionVoterSession::where([ 
@@ -69,6 +74,8 @@ class IndexController extends Controller
             'session_id' => Session::getId(),
             'is_active' => 1
         ])->first();
+
+        $otp = $this->generateNumericOTP(4);
         
         if (empty($elec_vtr_session)) {
             $created_elec_vtr_session = ElectionVoterSession::create([
@@ -92,6 +99,15 @@ class IndexController extends Controller
         } else {
             $elec_vtr_session = $elec_vtr_session->toArray();
         }
+
+        // Add Log
+        $this->auditLog->addLog([
+            'voter_id' => Auth::user()->asoci_vtr_id,
+            'session_id' => Session::getId(),
+            'comments' => 'Clicked on SMS link and Recieved OTP'
+        ]);
+
+        // $this->sendSms($otp);
 
         return view('otppage1')->with('otpExpiryDate', $elec_vtr_session['otp_expires_on']);
     }
@@ -132,26 +148,29 @@ class IndexController extends Controller
                 'otp.in' => $otp_validate_msg
             )
         );
+
         if ($validator->fails()) {
+            // Add Log
+            $this->auditLog->addLog([
+                'voter_id' => Auth::user()->asoci_vtr_id,
+                'session_id' => Session::getId(),
+                'comments' => 'Before poll start wrong OTP submitted'
+            ]);
             return view('otppage1')->withErrors($validator)->with('otpExpiryDate', $elec_vtr_session['otp_expires_on']);
         }
+
+        // Add Log
+        $this->auditLog->addLog([
+            'voter_id' => Auth::user()->asoci_vtr_id,
+            'session_id' => Session::getId(),
+            'comments' => 'Correct OTP submitted and entered into voting screen'
+        ]);
 
         return redirect('voting/'.$enc_vtr_card_no);
     }
 
     public function resendOtp1(Request $request) {
         $enc_vtr_card_no = $request['enc_vtr_card_no'];
-
-        // // IF Voter is InActive
-        // $elec_vtr_session = ElectionVoterSession::where([ 
-        //     'asoci_vtr_id' => Auth::user()->asoci_vtr_id,
-        //     'session_id' => Session::getId(),
-        //     'is_active' => 1
-        // ])->first();
-
-        // if(empty($elec_vtr_session)) {
-        //     return redirect('commonError');
-        // }
 
         // Update OTP
         ElectionVoterSession::where([ 
@@ -161,6 +180,13 @@ class IndexController extends Controller
         ])->update([
             'otp' => '1234',
             'otp_expires_on' => Carbon::now()->addMinutes(2)
+        ]);
+
+        // Add Log
+        $this->auditLog->addLog([
+            'voter_id' => Auth::user()->asoci_vtr_id,
+            'session_id' => Session::getId(),
+            'comments' => 'Before poll start resend OTP clicked'
         ]);
 
         return redirect('verification1/'.$enc_vtr_card_no)->with('otpExpiryDate', Carbon::now()->addMinutes(2));
@@ -196,6 +222,14 @@ class IndexController extends Controller
 
     public function submitVotes(Request $request, $enc_vtr_card_no) {
         Session::put('participant_ids', $request['participent_ids']);
+
+        // Add Log
+        $this->auditLog->addLog([
+            'voter_id' => Auth::user()->asoci_vtr_id,
+            'session_id' => Session::getId(),
+            'comments' => 'End poll and received OTP'
+        ]);
+
         return redirect('verification2/'.$enc_vtr_card_no);
     }
 
@@ -265,7 +299,14 @@ class IndexController extends Controller
                 'otp.in' => $otp_validate_msg
             )
         );
+
         if ($validator->fails()) {
+            // Add Log
+            $this->auditLog->addLog([
+                'voter_id' => Auth::user()->asoci_vtr_id,
+                'session_id' => Session::getId(),
+                'comments' => 'After end poll wrong OTP submitted'
+            ]);
             return view('otppage2')->withErrors($validator)->with('otpExpiryDate', $elec_vtr_session['otp_expires_on']);
         }
 
@@ -295,6 +336,13 @@ class IndexController extends Controller
             'session_ended_on' => Carbon::now()
         ]);
 
+        // Add Log
+        $this->auditLog->addLog([
+            'voter_id' => Auth::user()->asoci_vtr_id,
+            'session_id' => Session::getId(),
+            'comments' => 'After end poll Correct OTP submitted and entered into thank you page'
+        ]);
+
         // Save Pdf
         $this->downloadPdf($voted_participants);
 
@@ -317,10 +365,17 @@ class IndexController extends Controller
             'otp_expires_on' => Carbon::now()->addMinutes(2)
         ]);
 
+        // Add Log
+        $this->auditLog->addLog([
+            'voter_id' => Auth::user()->asoci_vtr_id,
+            'session_id' => Session::getId(),
+            'comments' => 'After poll start resend OTP clicked'
+        ]);
+
         return redirect('verification2/'.$enc_vtr_card_no)->with('otpExpiryDate', Carbon::now()->addMinutes(2));
     }
 
-    function thankyou() {
+    public function thankyou() {
         Session::pull('enc_vtr_card_no');
         Session::pull('participant_ids');
         Session::flush();
@@ -328,16 +383,16 @@ class IndexController extends Controller
         return view('thankyou');
     }
 
-    function commonError() {
+    public function commonError() {
         Auth::logout();
         return view('error');
     }
 
-    function alreadyVoted() {
+    public function alreadyVoted() {
         return view('alreadyvoted');
     }
 
-    function CallAPI($method, $url, $data = false)
+    public function CallAPI($method, $url, $data = false)
     {
         $curl = curl_init();
 
@@ -371,7 +426,7 @@ class IndexController extends Controller
         return $result;
     }
 
-    function downloadPdf($voted_participants) {
+    public function downloadPdf($voted_participants) {
         $customPaper = array(0,0,750,800.80);
         $html = '';        
         $posts = $this->posts();
@@ -383,5 +438,34 @@ class IndexController extends Controller
         }
         $pdf = PDF::loadHTML($html)->setPaper($customPaper, 'portrait');
         Storage::put('public/pdf/ebolletpaper'.uniqid().'.pdf', $pdf->output());
+    }
+
+    public function votingNewDesign() {
+        $election_posts = $this->posts();
+        return view('votingnew')->with('election_posts', $election_posts);
+    }
+
+    public function sendSms($otp) {
+        $msg = "Thanks for shopping with RAMPS CUBE. Your Order ".$otp." is confirmed and will be shipped shortly. Thank you";
+        $api_key = 'wqQsrkPpPfo5kfY4g1g78FZlxOkJIBKsC0IE69Oe';
+        $contacts = '8977425125';
+        $sender_id = 'RAMSQB';
+        $sms_text = urlencode($msg);
+        $template_id = '1207162313011752425';
+        $ch = curl_init();
+        curl_setopt($ch,CURLOPT_URL, "http://textbeam.in/api/v1/send-sms?api-key=".$api_key."&sender-id=".$sender_id."&sms-type=1&route=1&mobile=".$contacts."&message=".$sms_text."&te_id=".$template_id);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        $response = curl_exec($ch);
+        curl_close($ch);
+    }
+
+    function generateNumericOTP($n) {
+        $generator = "1357902468";
+        $result = "";
+        for ($i = 1; $i <= $n; $i++) {
+            $result .= substr($generator, (rand()%(strlen($generator))), 1);
+        }
+        return $result;
     }
 }
