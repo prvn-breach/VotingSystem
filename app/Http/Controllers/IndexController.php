@@ -92,9 +92,7 @@ class IndexController extends Controller
             if (empty($created_elec_vtr_session)) {
                 return redirect('commonError');
             }
-            $elec_vtr_session = $created_elec_vtr_session->toArray();
-        } else {
-            $elec_vtr_session = $elec_vtr_session->toArray();
+            $elec_vtr_session['otp_expiry'] = $created_elec_vtr_session['otp_expires_on'];
         }
 
         // Add Log
@@ -106,7 +104,7 @@ class IndexController extends Controller
 
         // $this->sendSms($otp);
 
-        return view('otppage1')->with('otpExpiryDate', $elec_vtr_session['otp_expires_on']);
+        return view('otppage1')->with('otpExpiryDate', $elec_vtr_session['otp_expiry']);
     }
 
     public function submitOtp1(Request $request, $candidate_voter_card) {
@@ -121,11 +119,11 @@ class IndexController extends Controller
 
         $elec_vtr_session = $this->vtrSession->getCurrentVoterSession();
 
-        $diff = strtotime($elec_vtr_session['otp_expires_on']) - strtotime(Carbon::now());
+        $diff = strtotime($elec_vtr_session['otp_expiry']) - strtotime(Carbon::now());
 
         $otp_validate_msg = 'The Otp is invalid';
         if ($diff<=0) {
-            $elec_vtr_session['otp'] = null;
+            $elec_vtr_session['pin'] = null;
             $otp_validate_msg = 'The Otp was expired. please resend otp';
         }
 
@@ -133,7 +131,7 @@ class IndexController extends Controller
             array (
                 'otp' => $request['otp']
             ), array (
-                'otp' => 'required|in:'.$elec_vtr_session['otp']
+                'otp' => 'required|in:'.$elec_vtr_session['pin']
             ), array (
                 'otp.required' => 'the otp field is required.',
                 'otp.in' => $otp_validate_msg
@@ -147,7 +145,7 @@ class IndexController extends Controller
                 'session_id' => Session::getId(),
                 'comments' => 'Before poll start wrong OTP submitted'
             ]);
-            return view('otppage1')->withErrors($validator)->with('otpExpiryDate', $elec_vtr_session['otp_expires_on']);
+            return view('otppage1')->withErrors($validator)->with('otpExpiryDate', $elec_vtr_session['otp_expiry']);
         }
 
         // Add Log
@@ -164,13 +162,14 @@ class IndexController extends Controller
         $candidate_voter_card = $request['candidate_voter_card'];
 
         // Update OTP
+        $extended_time = Carbon::now()->addMinutes(2);
         ElectionVoterSession::where([ 
             'asoci_vtr_id' => Auth::user()->asoci_vtr_id,
             'session_id' => Session::getId(),
             'is_active' => 1
         ])->update([
             'otp' => '1234',
-            'otp_expires_on' => Carbon::now()->addMinutes(2)
+            'otp_expires_on' => $extended_time
         ]);
 
         // Add Log
@@ -180,7 +179,7 @@ class IndexController extends Controller
             'comments' => 'Before poll start resend OTP clicked'
         ]);
 
-        return redirect('verification1/'.$candidate_voter_card)->with('otpExpiryDate', Carbon::now()->addMinutes(2));
+        return redirect('verification1/'.$candidate_voter_card)->with('otpExpiryDate', $extended_time);
     }
 
     public function posts() {
@@ -225,14 +224,15 @@ class IndexController extends Controller
     }
 
     public function viewOtpPage2($candidate_voter_card) {
+        $extended_time = Carbon::now()->addMinutes(2);
         ElectionVoterSession::where([ 
             'asoci_vtr_id' => Auth::user()->asoci_vtr_id
         ])->update([
             'otp' => '2345',
-            'otp_expires_on' => Carbon::now()->addMinutes(2)
+            'otp_expires_on' => $extended_time
         ]);
 
-        return view('otppage2')->with('otpExpiryDate', Carbon::now()->addMinutes(2));
+        return view('otppage2')->with('otpExpiryDate', $extended_time);
     }
 
     public function submitOtp2(Request $request, $candidate_voter_card) { 
@@ -246,11 +246,11 @@ class IndexController extends Controller
 
         $elec_vtr_session = $this->vtrSession->getCurrentVoterSession();
 
-        $diff = strtotime($elec_vtr_session['otp_expires_on']) - strtotime(Carbon::now());
+        $diff = strtotime($elec_vtr_session['otp_expiry']) - strtotime(Carbon::now());
 
         $otp_validate_msg = 'The Otp is invalid';
         if ($diff<=0) {
-            $elec_vtr_session['otp'] = null;
+            $elec_vtr_session['pin'] = null;
             $otp_validate_msg = 'The Otp was expired. please resend otp';
         }
 
@@ -258,7 +258,7 @@ class IndexController extends Controller
             array (
                 'otp' => $request['otp']
             ), array (
-                'otp' => 'required|in:'.$elec_vtr_session['otp']
+                'otp' => 'required|in:'.$elec_vtr_session['pin']
             ), array (
                 'otp.required' => 'the otp field is required.',
                 'otp.in' => $otp_validate_msg
@@ -309,7 +309,7 @@ class IndexController extends Controller
         ]);
 
         // Save Pdf
-        $this->downloadPdf($voted_participants);
+        $this->createPDF($voted_participants);
 
         // Destroy session
         Session::flush();
@@ -321,13 +321,14 @@ class IndexController extends Controller
         $candidate_voter_card = $request['candidate_voter_card'];
 
         // Update OTP
+        $extended_time = Carbon::now()->addMinutes(2);
         ElectionVoterSession::where([ 
             'asoci_vtr_id' => Auth::user()->asoci_vtr_id,
             'session_id' => Session::getId(),
             'is_active' => 1
         ])->update([
             'otp' => '1234',
-            'otp_expires_on' => Carbon::now()->addMinutes(2)
+            'otp_expires_on' => $extended_time
         ]);
 
         // Add Log
@@ -337,7 +338,7 @@ class IndexController extends Controller
             'comments' => 'After poll start resend OTP clicked'
         ]);
 
-        return redirect('verification2/'.$candidate_voter_card)->with('otpExpiryDate', Carbon::now()->addMinutes(2));
+        return redirect('verification2/'.$candidate_voter_card)->with('otpExpiryDate', $extended_time);
     }
 
     public function thankyou() {
@@ -391,7 +392,7 @@ class IndexController extends Controller
         return $result;
     }
 
-    public function downloadPdf($voted_participants) {
+    public function createPDF($voted_participants) {
         $customPaper = array(0,0,750,800.80);
         $html = '';        
         $posts = $this->posts();

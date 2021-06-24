@@ -15,9 +15,9 @@ class ElectionVoterSession extends Model
         'longitude', 'session_started_on', 'session_ended_on', 'session_auth_key', 'is_active'
     ];
 
-
     public function getCurrentVoterSession() {
-        return $this->where([ 
+        return $this->select('otp as pin', 'otp_expires_on as otp_expiry')
+            ->where([ 
             'asoci_vtr_id' => Auth::user()->asoci_vtr_id,
             'session_id' => Session::getId(),
             'is_active' => 1
