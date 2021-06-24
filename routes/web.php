@@ -33,6 +33,7 @@ Route::group([ 'middleware' => 'session' ], function () {
 Route::get('/thankyou', 'IndexController@thankyou');
 Route::get('/commonError', 'IndexController@commonError');
 Route::get('/already-voted', 'IndexController@alreadyVoted');
+Route::get('/live', 'IndexController@liveCount');
 
 Auth::routes();
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');

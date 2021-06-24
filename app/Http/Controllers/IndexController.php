@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use DB;
 use PDF;
 use Session;
 use Validator;
@@ -10,6 +9,7 @@ use Carbon\Carbon;
 use App\Rules\Captcha;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
@@ -22,10 +22,11 @@ use App\Models\ElectionVoterSession;
 
 class IndexController extends Controller
 {
-    public function __construct(AuditLog $auditLog, ElectionVoterSession $vtrSession)
+    public function __construct(AuditLog $auditLog, ElectionVoterSession $vtrSession, ElectionVote $vote)
     {
         $this->auditLog = $auditLog;
         $this->vtrSession = $vtrSession;
+        $this->vote = $vote;
     } 
     // public function viewDeclaration($candidate_voter_card) {
     //     // All Sessions will be inactive
@@ -433,5 +434,22 @@ class IndexController extends Controller
             $result .= substr($generator, (rand()%(strlen($generator))), 1);
         }
         return $result;
+    }
+
+
+    function liveCount() {
+        $election_votes = ElectionVote::select('elec_participnt_id',DB::raw('COUNT(*) as count'))
+            ->groupBY('elec_participnt_id')
+            ->get()->toArray();
+        
+        $votes = [];
+        foreach ($election_votes as $vote) {
+            $candidate_id= openssl_decrypt(hex2bin($vote['elec_participnt_id']), config('app.cipher'), config('app.key'), OPENSSL_RAW_DATA, config('app.IV'));
+            $votes[$candidate_id] = $vote['count'];
+        }
+
+        $posts = $this->posts();
+
+        return view('livecount')->with('posts', $posts)->with('votes', $votes);
     }
 }
