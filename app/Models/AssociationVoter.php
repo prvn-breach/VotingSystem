@@ -12,6 +12,8 @@ class AssociationVoter extends Authenticatable
     
     protected $table = 'asoci_voters';
 
+    protected $fillable = [ 'remember_token' ];
+
     protected $hidden = [ 'remember_token' ];
 
     protected $primaryKey = 'asoci_vtr_id';

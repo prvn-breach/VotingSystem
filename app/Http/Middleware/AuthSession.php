@@ -62,9 +62,9 @@ class AuthSession
 
             // If Session starts already on another device
             if ( ElectionVoterSession::where('asoci_vtr_id', $voter_details['asoci_vtr_id'])
-            ->where('session_id', '!=', Session::getId())
-            ->where('is_active', 1)
-            ->count() > 0 ) 
+                ->where('session_id', '!=', Session::getId())
+                ->where('is_active', 1)
+                ->count() > 0 ) 
             {
                 return redirect('commonError');
             }

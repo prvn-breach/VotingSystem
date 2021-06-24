@@ -22,9 +22,10 @@ use App\Models\ElectionVoterSession;
 
 class IndexController extends Controller
 {
-    public function __construct(AuditLog $auditLog)
+    public function __construct(AuditLog $auditLog, ElectionVoterSession $vtrSession)
     {
         $this->auditLog = $auditLog;
+        $this->vtrSession = $vtrSession;
     } 
     // public function viewDeclaration($candidate_voter_card) {
     //     // All Sessions will be inactive
@@ -69,11 +70,7 @@ class IndexController extends Controller
 
         Session::put('candidate_voter_card', $candidate_voter_card);
 
-        $elec_vtr_session = ElectionVoterSession::where([
-            'asoci_vtr_id' => Auth::user()->asoci_vtr_id,
-            'session_id' => Session::getId(),
-            'is_active' => 1
-        ])->first();
+        $elec_vtr_session = $this->vtrSession->getCurrentVoterSession();
 
         $otp = $this->generateNumericOTP(4);
         
@@ -122,13 +119,7 @@ class IndexController extends Controller
             return redirect('commonError');
         }
 
-        $elec_vtr_session = ElectionVoterSession::where([ 
-            'asoci_vtr_id' => Auth::user()->asoci_vtr_id,
-            'session_id' => Session::getId(),
-            'is_active' => 1
-        ])->first();
-
-        $elec_vtr_session = $elec_vtr_session->toArray();
+        $elec_vtr_session = $this->vtrSession->getCurrentVoterSession();
 
         $diff = strtotime($elec_vtr_session['otp_expires_on']) - strtotime(Carbon::now());
 
@@ -234,20 +225,6 @@ class IndexController extends Controller
     }
 
     public function viewOtpPage2($candidate_voter_card) {
-
-        $elec_vtr_session = ElectionVoterSession::where([ 
-            'asoci_vtr_id' => Auth::user()->asoci_vtr_id,
-            'session_id' => Session::getId(),
-            'is_active' => 1
-        ])->first();
-
-        // if(empty($elec_vtr_session)) {
-        //     return redirect('commonError');
-        // }
-
-        $elec_vtr_session = $elec_vtr_session->toArray();
-
-        $voter_details = Auth::user()->toArray();
         ElectionVoterSession::where([ 
             'asoci_vtr_id' => Auth::user()->asoci_vtr_id
         ])->update([
@@ -259,7 +236,6 @@ class IndexController extends Controller
     }
 
     public function submitOtp2(Request $request, $candidate_voter_card) { 
-
         if (
             $request['username']!=null || 
             $request['password']!=null || 
@@ -268,18 +244,7 @@ class IndexController extends Controller
             return redirect('commonError');
         }
 
-        // IF Voter is InActive
-        $elec_vtr_session = ElectionVoterSession::where([ 
-            'asoci_vtr_id' => Auth::user()->asoci_vtr_id,
-            'session_id' => Session::getId(),
-            'is_active' => 1
-        ])->first();
-
-        // if(empty($elec_vtr_session)) {
-        //     return redirect('commonError');
-        // }
-
-        $elec_vtr_session = $elec_vtr_session->toArray();
+        $elec_vtr_session = $this->vtrSession->getCurrentVoterSession();
 
         $diff = strtotime($elec_vtr_session['otp_expires_on']) - strtotime(Carbon::now());
 
